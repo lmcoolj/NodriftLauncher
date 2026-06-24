@@ -4,6 +4,7 @@ mod instances;
 mod launch;
 mod loaders;
 mod modpack;
+mod mods;
 mod modrinth;
 mod paths;
 mod prism;
@@ -29,6 +30,7 @@ pub fn run() {
             instances::duplicate_instance,
             instances::toggle_mod,
             instances::delete_mod_file,
+            mods::list_mods,
             instances::list_instance_files,
             instances::instance_path,
             launch::list_versions,

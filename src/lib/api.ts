@@ -67,6 +67,18 @@ export const deleteInstance = (id: string) =>
 export const duplicateInstance = (id: string) =>
   invoke<Instance>("duplicate_instance", { id });
 
+export interface ModInfo {
+  file_name: string;
+  name: string;
+  version: string;
+  authors: string;
+  description: string;
+  icon: string | null;
+  enabled: boolean;
+  project_id: string | null;
+}
+export const listMods = (id: string) => invoke<ModInfo[]>("list_mods", { id });
+
 export const toggleMod = (id: string, fileName: string, enabled: boolean) =>
   invoke<Instance>("toggle_mod", { id, fileName, enabled });
 export const deleteModFile = (id: string, fileName: string) =>

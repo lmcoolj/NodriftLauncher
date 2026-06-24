@@ -6,13 +6,12 @@ import {
   FolderOpen,
   Loader2,
   Trash2,
-  Eye,
-  EyeOff,
   Package,
   Folder,
   FileText,
   ChevronRight,
   Boxes,
+  RefreshCw,
 } from "lucide-react";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { Button } from "../components/Button";
@@ -20,9 +19,11 @@ import { InstanceModal } from "../components/InstanceModal";
 import {
   toggleMod,
   deleteModFile,
+  listMods,
   listInstanceFiles,
   instancePath,
   type FileEntry,
+  type ModInfo,
 } from "../lib/api";
 import { useInstances } from "../store/instances";
 import { useLaunch } from "../store/launch";
@@ -48,6 +49,14 @@ export function InstanceDetailPage({ id }: { id: string }) {
 
   const [editing, setEditing] = useState(false);
   const [busyMod, setBusyMod] = useState<string | null>(null);
+
+  // Installed mods (rich metadata read from the jars)
+  const [mods, setMods] = useState<ModInfo[]>([]);
+  const loadMods = () => listMods(id).then(setMods).catch(() => setMods([]));
+  useEffect(() => {
+    if (instance) loadMods();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, instance?.mods.length]);
 
   // File browser
   const [rel, setRel] = useState("");
@@ -182,52 +191,95 @@ export function InstanceDetailPage({ id }: { id: string }) {
       </div>
 
       {/* Installed mods */}
-      <h3 className="mb-2 mt-6 font-semibold">Installed mods</h3>
-      {instance.mods.length === 0 ? (
+      <div className="mb-2 mt-6 flex items-center justify-between">
+        <h3 className="font-semibold">
+          Mods <span className="text-sm font-normal text-muted">({mods.length})</span>
+        </h3>
+        <button
+          onClick={loadMods}
+          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted transition-colors hover:bg-surface-hover hover:text-text"
+        >
+          <RefreshCw size={13} />
+          Refresh
+        </button>
+      </div>
+      {mods.length === 0 ? (
         <p className="rounded-card border border-dashed border-border p-6 text-center text-sm text-muted">
           No mods yet.
         </p>
       ) : (
-        <ul className="flex flex-col gap-1.5">
-          {instance.mods.map((m) => (
-            <li
-              key={m.file_name}
-              className="flex items-center gap-3 rounded-lg bg-surface px-3 py-2 text-sm ring-1 ring-border"
-            >
-              <Package size={15} className={m.enabled ? "text-accent-soft" : "text-muted"} />
-              <span className={`min-w-0 flex-1 truncate ${m.enabled ? "" : "text-muted line-through"}`}>
-                {m.name}
-              </span>
-              <button
-                title={m.enabled ? "Disable" : "Enable"}
-                disabled={busyMod === m.file_name}
-                onClick={async () => {
-                  setBusyMod(m.file_name);
-                  try {
-                    apply(await toggleMod(id, m.file_name, !m.enabled));
-                  } finally {
-                    setBusyMod(null);
-                  }
-                }}
-                className="rounded-md p-1.5 text-muted transition-colors hover:bg-surface-hover hover:text-text"
+        <ul className="overflow-hidden rounded-card ring-1 ring-border">
+          {mods.map((m, i) => {
+            const toggle = async () => {
+              setBusyMod(m.file_name);
+              try {
+                apply(await toggleMod(id, m.file_name, !m.enabled));
+                await loadMods();
+              } finally {
+                setBusyMod(null);
+              }
+            };
+            const remove = async () => {
+              apply(await deleteModFile(id, m.file_name));
+              await loadMods();
+            };
+            return (
+              <li
+                key={m.file_name}
+                className={`flex items-center gap-3 px-3 py-2.5 ${
+                  i % 2 ? "bg-surface-2/40" : "bg-surface"
+                } ${m.enabled ? "" : "opacity-60"}`}
               >
-                {busyMod === m.file_name ? (
-                  <Loader2 size={15} className="animate-spin" />
-                ) : m.enabled ? (
-                  <Eye size={15} />
+                {m.icon ? (
+                  <img
+                    src={m.icon}
+                    alt=""
+                    className="h-10 w-10 shrink-0 rounded-lg bg-surface-2 object-cover ring-1 ring-border"
+                  />
                 ) : (
-                  <EyeOff size={15} />
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted ring-1 ring-border">
+                    <Package size={18} />
+                  </div>
                 )}
-              </button>
-              <button
-                title="Delete"
-                onClick={async () => apply(await deleteModFile(id, m.file_name))}
-                className="rounded-md p-1.5 text-red-300 transition-colors hover:bg-red-500/10"
-              >
-                <Trash2 size={15} />
-              </button>
-            </li>
-          ))}
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="truncate font-medium">{m.name}</span>
+                    {m.version && (
+                      <span className="shrink-0 text-xs text-muted">{m.version}</span>
+                    )}
+                  </div>
+                  <div className="truncate text-xs text-muted">
+                    {m.authors ? `by ${m.authors}` : m.file_name}
+                  </div>
+                </div>
+
+                {/* toggle switch */}
+                <button
+                  title={m.enabled ? "Disable" : "Enable"}
+                  onClick={toggle}
+                  disabled={busyMod === m.file_name}
+                  className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+                    m.enabled ? "bg-green-500" : "bg-surface-hover"
+                  } disabled:opacity-50`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                      m.enabled ? "translate-x-4" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+
+                <button
+                  title="Delete"
+                  onClick={remove}
+                  className="shrink-0 rounded-md p-1.5 text-muted transition-colors hover:bg-red-500/10 hover:text-red-300"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
 

@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Bundled Main Client modpack (large binaries; staged locally, shipped via Tauri resources)
+src-tauri/resources/main-client/

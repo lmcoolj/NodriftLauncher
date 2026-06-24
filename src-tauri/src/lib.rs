@@ -5,6 +5,7 @@ mod loaders;
 mod modpack;
 mod modrinth;
 mod paths;
+mod prism;
 
 use accounts::AccountStore;
 
@@ -35,6 +36,7 @@ pub fn run() {
             modpack::inspect_modpack,
             modpack::import_mrpack,
             modpack::import_zip,
+            prism::ensure_main_client,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

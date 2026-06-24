@@ -114,6 +114,10 @@ export const importZip = (
   loader: LoaderInfo | null
 ) => invoke<Instance>("import_zip", { path, name, mcVersion, loader });
 
+/** First-run: seed the bundled "Main Client". Returns it if just created. */
+export const ensureMainClient = () =>
+  invoke<Instance | null>("ensure_main_client");
+
 // ---- Modrinth ----
 export interface SearchHit {
   project_id: string;

@@ -9,6 +9,7 @@ import { BrowsePage } from "./pages/BrowsePage";
 import { useUI } from "./store/ui";
 import { useLaunch } from "./store/launch";
 import { useInstances } from "./store/instances";
+import { ensureMainClient } from "./lib/api";
 
 const TITLES: Record<string, string> = {
   instances: "Instances",
@@ -24,7 +25,10 @@ function App() {
 
   useEffect(() => {
     initLaunch();
-    refreshInstances();
+    // Seed the bundled Main Client on first run, then load instances.
+    ensureMainClient()
+      .catch(() => null)
+      .finally(() => refreshInstances());
   }, [initLaunch, refreshInstances]);
 
   return (

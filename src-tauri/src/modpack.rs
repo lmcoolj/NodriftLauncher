@@ -257,6 +257,7 @@ pub async fn import_mrpack(
                 version_id,
                 name: filename.clone(),
                 file_name: filename,
+                enabled: true,
             });
         }
     }
@@ -310,6 +311,7 @@ pub fn import_zip(
                     version_id: String::new(),
                     name: fname.clone(),
                     file_name: fname,
+                    enabled: true,
                 });
             }
         }

@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { Settings as Cog } from "lucide-react";
 import { Sidebar } from "./components/Sidebar";
-import { Placeholder } from "./components/Placeholder";
 import { ConsoleDrawer } from "./components/ConsoleDrawer";
 import { AccountsPage } from "./pages/AccountsPage";
 import { InstancesPage } from "./pages/InstancesPage";
+import { InstanceDetailPage } from "./pages/InstanceDetailPage";
 import { BrowsePage } from "./pages/BrowsePage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { useUI } from "./store/ui";
 import { useLaunch } from "./store/launch";
 import { useInstances } from "./store/instances";
@@ -20,6 +20,7 @@ const TITLES: Record<string, string> = {
 
 function App() {
   const view = useUI((s) => s.view);
+  const instanceDetailId = useUI((s) => s.instanceDetailId);
   const initLaunch = useLaunch((s) => s.init);
   const refreshInstances = useInstances((s) => s.refresh);
 
@@ -41,16 +42,15 @@ function App() {
         </header>
 
         <main className="min-h-0 flex-1 overflow-y-auto p-6">
-          {view === "instances" && <InstancesPage />}
+          {view === "instances" &&
+            (instanceDetailId ? (
+              <InstanceDetailPage id={instanceDetailId} />
+            ) : (
+              <InstancesPage />
+            ))}
           {view === "accounts" && <AccountsPage />}
           {view === "browse" && <BrowsePage />}
-          {view === "settings" && (
-            <Placeholder
-              icon={Cog}
-              title="Settings"
-              subtitle="Customize accent color, default Java args, RAM, resolution, and the instance directory."
-            />
-          )}
+          {view === "settings" && <SettingsPage />}
         </main>
 
         <ConsoleDrawer />

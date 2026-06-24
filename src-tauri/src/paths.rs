@@ -22,7 +22,11 @@ pub fn shared_dir(app: &AppHandle) -> Result<PathBuf, String> {
 }
 
 /// Root directory containing all instance folders.
+/// Honors a user-configured instance directory if set (Settings).
 pub fn instances_dir(app: &AppHandle) -> Result<PathBuf, String> {
+    if let Some(dir) = crate::app_settings::instance_dir_override(app) {
+        return Ok(dir);
+    }
     Ok(app_data(app)?.join("instances"))
 }
 

@@ -39,6 +39,9 @@ pub struct LaunchRequest {
     pub default_ram_mb: Option<u64>,
     /// Global default JVM args (used when the instance has no override).
     pub default_java_args: Option<String>,
+    /// Game window resolution.
+    pub width: Option<u32>,
+    pub height: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -170,6 +173,16 @@ pub async fn launch_minecraft(
         if !parts.is_empty() {
             builder = builder.custom_java_args(parts);
         }
+    }
+
+    // Window resolution as Minecraft game args.
+    if let (Some(w), Some(h)) = (request.width, request.height) {
+        builder = builder.custom_args(vec![
+            "--width".into(),
+            w.to_string(),
+            "--height".into(),
+            h.to_string(),
+        ]);
     }
 
     status(&app, "Installing");

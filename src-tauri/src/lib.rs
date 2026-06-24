@@ -1,4 +1,5 @@
 mod accounts;
+mod app_settings;
 mod instances;
 mod launch;
 mod loaders;
@@ -26,10 +27,15 @@ pub fn run() {
             instances::update_instance,
             instances::delete_instance,
             instances::duplicate_instance,
+            instances::toggle_mod,
+            instances::delete_mod_file,
+            instances::list_instance_files,
+            instances::instance_path,
             launch::list_versions,
             launch::launch_minecraft,
             loaders::list_loader_versions,
             modrinth::modrinth_search,
+            modrinth::modrinth_project,
             modrinth::modrinth_resolve,
             modrinth::modrinth_install,
             modrinth::remove_mod,
@@ -37,6 +43,8 @@ pub fn run() {
             modpack::import_mrpack,
             modpack::import_zip,
             prism::ensure_main_client,
+            app_settings::get_app_settings,
+            app_settings::set_app_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

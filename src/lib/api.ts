@@ -25,6 +25,7 @@ export interface ModEntry {
   version_id: string;
   name: string;
   file_name: string;
+  enabled: boolean;
 }
 
 export interface Instance {
@@ -66,6 +67,21 @@ export const deleteInstance = (id: string) =>
 export const duplicateInstance = (id: string) =>
   invoke<Instance>("duplicate_instance", { id });
 
+export const toggleMod = (id: string, fileName: string, enabled: boolean) =>
+  invoke<Instance>("toggle_mod", { id, fileName, enabled });
+export const deleteModFile = (id: string, fileName: string) =>
+  invoke<Instance>("delete_mod_file", { id, fileName });
+
+export interface FileEntry {
+  name: string;
+  is_dir: boolean;
+  size: number;
+}
+export const listInstanceFiles = (id: string, rel: string) =>
+  invoke<FileEntry[]>("list_instance_files", { id, rel });
+export const instancePath = (id: string) =>
+  invoke<string>("instance_path", { id });
+
 // ---- Versions / launch ----
 export const listVersions = () => invoke<VersionInfo[]>("list_versions");
 
@@ -81,6 +97,8 @@ export interface LaunchRequest {
   instanceId: string;
   defaultRamMb?: number;
   defaultJavaArgs?: string;
+  width?: number;
+  height?: number;
 }
 
 export const launchMinecraft = (req: LaunchRequest) =>
@@ -89,8 +107,18 @@ export const launchMinecraft = (req: LaunchRequest) =>
       instance_id: req.instanceId,
       default_ram_mb: req.defaultRamMb ?? null,
       default_java_args: req.defaultJavaArgs ?? null,
+      width: req.width ?? null,
+      height: req.height ?? null,
     },
   });
+
+// ---- App settings (backend: instance directory) ----
+export interface AppSettings {
+  instance_dir: string | null;
+}
+export const getAppSettings = () => invoke<AppSettings>("get_app_settings");
+export const setAppSettings = (settings: AppSettings) =>
+  invoke<void>("set_app_settings", { settings });
 
 // ---- Modpack import ----
 export interface ModpackInfo {
@@ -160,6 +188,22 @@ export const modrinthSearch = (
     loader: loader ?? null,
     offset,
   });
+
+export interface ProjectDetail {
+  title: string;
+  description: string;
+  body: string;
+  icon_url: string | null;
+  downloads: number;
+  followers: number;
+  categories: string[];
+  gallery: string[];
+  source_url: string | null;
+  issues_url: string | null;
+  wiki_url: string | null;
+}
+export const modrinthProject = (projectId: string) =>
+  invoke<ProjectDetail>("modrinth_project", { projectId });
 
 export const modrinthResolve = (instanceId: string, projectId: string) =>
   invoke<InstallPlan>("modrinth_resolve", { instanceId, projectId });

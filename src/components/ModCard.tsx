@@ -13,16 +13,18 @@ export function ModCard({
   busy,
   onInstall,
   onRemove,
+  onOpen,
 }: {
   hit: SearchHit;
   installed: boolean;
   busy: boolean;
   onInstall: () => void;
   onRemove: () => void;
+  onOpen: () => void;
 }) {
   return (
     <div className="flex flex-col rounded-card bg-surface p-4 ring-1 ring-border transition-colors hover:bg-surface-hover">
-      <div className="flex gap-3">
+      <button onClick={onOpen} className="flex gap-3 text-left">
         {hit.icon_url ? (
           <img
             src={hit.icon_url}
@@ -35,16 +37,19 @@ export function ModCard({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="truncate font-medium">{hit.title}</div>
+          <div className="truncate font-medium hover:text-accent-soft">{hit.title}</div>
           <div className="truncate text-xs text-muted">
             by {hit.author} · {compact(hit.downloads)} downloads
           </div>
         </div>
-      </div>
+      </button>
 
-      <p className="mt-3 line-clamp-3 flex-1 text-sm text-muted">
+      <button
+        onClick={onOpen}
+        className="mt-3 line-clamp-3 flex-1 text-left text-sm text-muted"
+      >
         {hit.description}
-      </p>
+      </button>
 
       <div className="mt-3">
         {installed ? (

@@ -170,6 +170,7 @@ pub fn import_prism(
                     version_id: String::new(),
                     name: fname.clone(),
                     file_name: fname,
+                    enabled: true,
                 });
             }
         }

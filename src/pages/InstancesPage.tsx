@@ -19,7 +19,8 @@ export function InstancesPage() {
   const { status, activeId, launch, setConsoleOpen, consoleOpen } = useLaunch();
   const active = useAccounts((s) => s.active);
   const setView = useUI((s) => s.setView);
-  const { defaultRamMb, defaultJavaArgs } = useSettings();
+  const openInstance = useUI((s) => s.openInstance);
+  const { defaultRamMb, defaultJavaArgs, resolution } = useSettings();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Instance | null>(null);
@@ -50,6 +51,8 @@ export function InstancesPage() {
       instanceId: inst.id,
       defaultRamMb,
       defaultJavaArgs,
+      width: resolution.width,
+      height: resolution.height,
     });
   };
 
@@ -119,7 +122,7 @@ export function InstancesPage() {
               selected={selectedId === inst.id}
               busy={launchBusy && activeId === inst.id}
               statusLabel={status}
-              onSelect={() => select(inst.id)}
+              onSelect={() => openInstance(inst.id)}
               onPlay={() => onPlay(inst)}
               onMods={() => {
                 select(inst.id);

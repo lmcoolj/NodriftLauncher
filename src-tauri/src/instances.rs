@@ -18,13 +18,21 @@ pub struct LoaderInfo {
     pub version: String,
 }
 
+fn default_true() -> bool {
+    true
+}
+
 /// A mod tracked as installed in this instance (populated by the Modrinth step).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModEntry {
     pub project_id: String,
     pub version_id: String,
     pub name: String,
+    /// The mod's base filename (the enabled `.jar` name).
     pub file_name: String,
+    /// When false, the file on disk is `<file_name>.disabled` and ignored by the loader.
+    #[serde(default = "default_true")]
+    pub enabled: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -188,4 +196,97 @@ pub fn load_instance(app: &AppHandle, id: &str) -> Result<Instance, String> {
 /// Persist an instance (used by the Modrinth mod-install flow).
 pub fn save_instance(app: &AppHandle, instance: &Instance) -> Result<(), String> {
     write_instance(app, instance)
+}
+
+/// Enable/disable a mod by toggling its `.jar` ↔ `.jar.disabled` on disk.
+#[tauri::command]
+pub fn toggle_mod(
+    app: AppHandle,
+    id: String,
+    file_name: String,
+    enabled: bool,
+) -> Result<Instance, String> {
+    let mut instance = load_instance(&app, &id)?;
+    let mods_dir = paths::instance_mods_dir(&app, &id)?;
+    let entry = instance
+        .mods
+        .iter_mut()
+        .find(|m| m.file_name == file_name)
+        .ok_or("Mod not found")?;
+
+    let active = mods_dir.join(&file_name);
+    let disabled = mods_dir.join(format!("{file_name}.disabled"));
+    if enabled && disabled.exists() {
+        std::fs::rename(&disabled, &active).map_err(|e| e.to_string())?;
+    } else if !enabled && active.exists() {
+        std::fs::rename(&active, &disabled).map_err(|e| e.to_string())?;
+    }
+    entry.enabled = enabled;
+    save_instance(&app, &instance)?;
+    Ok(instance)
+}
+
+/// Delete a mod by filename (handles enabled or disabled on disk).
+#[tauri::command]
+pub fn delete_mod_file(
+    app: AppHandle,
+    id: String,
+    file_name: String,
+) -> Result<Instance, String> {
+    let mut instance = load_instance(&app, &id)?;
+    let mods_dir = paths::instance_mods_dir(&app, &id)?;
+    let _ = std::fs::remove_file(mods_dir.join(&file_name));
+    let _ = std::fs::remove_file(mods_dir.join(format!("{file_name}.disabled")));
+    instance.mods.retain(|m| m.file_name != file_name);
+    save_instance(&app, &instance)?;
+    Ok(instance)
+}
+
+/// A file/folder entry inside an instance, for the file browser.
+#[derive(Debug, Serialize)]
+pub struct FileEntry {
+    pub name: String,
+    pub is_dir: bool,
+    pub size: u64,
+}
+
+/// List the contents of `rel` (relative path) inside an instance's folder.
+#[tauri::command]
+pub fn list_instance_files(
+    app: AppHandle,
+    id: String,
+    rel: String,
+) -> Result<Vec<FileEntry>, String> {
+    let root = paths::instance_dir(&app, &id)?;
+    // Resolve rel safely (reject `..` / absolute components).
+    let mut dir = root.clone();
+    for comp in Path::new(&rel).components() {
+        match comp {
+            std::path::Component::Normal(c) => dir.push(c),
+            std::path::Component::CurDir => {}
+            _ => return Err("Invalid path".into()),
+        }
+    }
+
+    let mut out: Vec<FileEntry> = Vec::new();
+    if dir.is_dir() {
+        for entry in std::fs::read_dir(&dir).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let meta = entry.metadata().map_err(|e| e.to_string())?;
+            out.push(FileEntry {
+                name: entry.file_name().to_string_lossy().into_owned(),
+                is_dir: meta.is_dir(),
+                size: meta.len(),
+            });
+        }
+    }
+    // Folders first, then alphabetical.
+    out.sort_by(|a, b| b.is_dir.cmp(&a.is_dir).then(a.name.cmp(&b.name)));
+    Ok(out)
+}
+
+/// Absolute path to an instance's folder (for "open in file manager").
+#[tauri::command]
+pub fn instance_path(app: AppHandle, id: String) -> Result<String, String> {
+    Ok(paths::instance_dir(&app, &id)?.to_string_lossy().into_owned())
 }

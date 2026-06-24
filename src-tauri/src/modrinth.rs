@@ -89,6 +89,81 @@ pub async fn modrinth_search(
     })
 }
 
+// ---------- Project detail ----------
+
+#[derive(Debug, Serialize)]
+pub struct ProjectDetail {
+    pub title: String,
+    pub description: String,
+    pub body: String,
+    pub icon_url: Option<String>,
+    pub downloads: u64,
+    pub followers: u64,
+    pub categories: Vec<String>,
+    pub gallery: Vec<String>,
+    pub source_url: Option<String>,
+    pub issues_url: Option<String>,
+    pub wiki_url: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MrProject {
+    title: String,
+    #[serde(default)]
+    description: String,
+    #[serde(default)]
+    body: String,
+    icon_url: Option<String>,
+    #[serde(default)]
+    downloads: u64,
+    #[serde(default)]
+    followers: u64,
+    #[serde(default)]
+    categories: Vec<String>,
+    #[serde(default)]
+    gallery: Vec<MrGalleryItem>,
+    source_url: Option<String>,
+    issues_url: Option<String>,
+    wiki_url: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MrGalleryItem {
+    url: String,
+}
+
+#[tauri::command]
+pub async fn modrinth_project(
+    http: State<'_, reqwest::Client>,
+    project_id: String,
+) -> Result<ProjectDetail, String> {
+    let p: MrProject = http
+        .get(format!("{API}/project/{project_id}"))
+        .header("User-Agent", USER_AGENT)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?
+        .error_for_status()
+        .map_err(|e| e.to_string())?
+        .json()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(ProjectDetail {
+        title: p.title,
+        description: p.description,
+        body: p.body,
+        icon_url: p.icon_url,
+        downloads: p.downloads,
+        followers: p.followers,
+        categories: p.categories,
+        gallery: p.gallery.into_iter().map(|g| g.url).collect(),
+        source_url: p.source_url,
+        issues_url: p.issues_url,
+        wiki_url: p.wiki_url,
+    })
+}
+
 // ---------- Versions / install ----------
 
 #[derive(Debug, Deserialize)]
@@ -305,6 +380,7 @@ pub async fn modrinth_install(
             version_id: item.version_id,
             name: item.title,
             file_name: item.filename,
+            enabled: true,
         };
         if let Some(existing) = instance
             .mods

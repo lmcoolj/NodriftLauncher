@@ -3,6 +3,7 @@ import { Search, Compass, AlertTriangle, Loader2, Plus } from "lucide-react";
 import { Button } from "../components/Button";
 import { Modal } from "../components/Modal";
 import { ModCard } from "../components/ModCard";
+import { ModDetail } from "../components/ModDetail";
 import {
   modrinthSearch,
   modrinthResolve,
@@ -31,6 +32,7 @@ export function BrowsePage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [plan, setPlan] = useState<{ data: InstallPlan; mainTitle: string } | null>(null);
   const [installingPlan, setInstallingPlan] = useState(false);
+  const [openHit, setOpenHit] = useState<SearchHit | null>(null);
 
   const installed = useMemo(
     () => new Set(instance?.mods.map((m) => m.project_id) ?? []),
@@ -120,6 +122,63 @@ export function BrowsePage() {
     );
   }
 
+  if (openHit) {
+    return (
+      <div className="mx-auto max-w-5xl">
+        <ModDetail
+          projectId={openHit.project_id}
+          installed={installed.has(openHit.project_id)}
+          busy={busyId === openHit.project_id}
+          onInstall={() => startInstall(openHit.project_id, openHit.title)}
+          onRemove={() => uninstall(openHit.project_id)}
+          onBack={() => setOpenHit(null)}
+        />
+        {/* keep the dependency modal available while on the detail view */}
+        <Modal
+          open={!!plan}
+          onClose={() => !installingPlan && setPlan(null)}
+          title="Install with dependencies"
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setPlan(null)} disabled={installingPlan}>
+                Cancel
+              </Button>
+              <Button onClick={confirmPlan} disabled={installingPlan}>
+                {installingPlan ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Plus size={16} />
+                )}
+                Install all
+              </Button>
+            </>
+          }
+        >
+          {plan && (
+            <div className="text-sm">
+              <p className="text-muted">
+                <span className="font-medium text-text">{plan.mainTitle}</span> needs
+                these dependencies, which will also be installed:
+              </p>
+              <ul className="mt-3 flex flex-col gap-1.5">
+                {plan.data.items
+                  .filter((i) => i.is_dependency)
+                  .map((d) => (
+                    <li
+                      key={d.project_id}
+                      className="rounded-lg bg-surface-2 px-3 py-2 ring-1 ring-border"
+                    >
+                      {d.title}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
+        </Modal>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-5xl">
       {/* Target instance + search */}
@@ -202,6 +261,7 @@ export function BrowsePage() {
                 busy={busyId === hit.project_id}
                 onInstall={() => startInstall(hit.project_id, hit.title)}
                 onRemove={() => uninstall(hit.project_id)}
+                onOpen={() => setOpenHit(hit)}
               />
             ))}
           </div>

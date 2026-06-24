@@ -16,7 +16,8 @@ import type { Instance } from "../lib/api";
 export function InstancesPage() {
   const { instances, loading, error, selectedId, refresh, remove, duplicate, select } =
     useInstances();
-  const { status, activeId, launch, kill, setConsoleOpen, consoleOpen } = useLaunch();
+  const { status, activeId, launch, requestKill, setConsoleOpen, consoleOpen } =
+    useLaunch();
   const active = useAccounts((s) => s.active);
   const setView = useUI((s) => s.setView);
   const openInstance = useUI((s) => s.openInstance);
@@ -125,7 +126,7 @@ export function InstancesPage() {
               statusLabel={status}
               onSelect={() => openInstance(inst.id)}
               onPlay={() => onPlay(inst)}
-              onStop={() => kill(inst.id)}
+              onStop={() => requestKill(inst.id)}
               onMods={() => {
                 select(inst.id);
                 setView("browse");

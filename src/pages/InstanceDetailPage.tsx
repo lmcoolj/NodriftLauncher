@@ -46,7 +46,7 @@ export function InstanceDetailPage({ id }: { id: string }) {
   const select = useInstances((s) => s.select);
   const active = useAccounts((s) => s.active);
   const { defaultRamMb, defaultJavaArgs, resolution } = useSettings();
-  const { status, activeId, launch, kill } = useLaunch();
+  const { status, activeId, launch, requestKill } = useLaunch();
 
   const [editing, setEditing] = useState(false);
   const [busyMod, setBusyMod] = useState<string | null>(null);
@@ -135,7 +135,7 @@ export function InstanceDetailPage({ id }: { id: string }) {
       <div className="mt-4 flex flex-wrap gap-2">
         {status === "Running" && activeId === id ? (
           <button
-            onClick={() => kill(id)}
+            onClick={() => requestKill(id)}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-500/90 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-red-500"
           >
             <Square size={15} fill="currentColor" />

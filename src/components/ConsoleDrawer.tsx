@@ -12,7 +12,7 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 export function ConsoleDrawer() {
-  const { log, status, progress, error, consoleOpen, setConsoleOpen, clearLog, kill } =
+  const { log, status, progress, error, consoleOpen, setConsoleOpen, clearLog, requestKill } =
     useLaunch();
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +49,7 @@ export function ConsoleDrawer() {
         <div className="flex items-center gap-1">
           {status === "Running" && (
             <button
-              onClick={() => kill()}
+              onClick={() => requestKill()}
               className="mr-1 inline-flex items-center gap-1.5 rounded-md bg-red-500/15 px-2 py-1 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/25"
             >
               <Square size={12} fill="currentColor" />

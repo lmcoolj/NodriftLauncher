@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { ConsoleDrawer } from "./components/ConsoleDrawer";
+import { StopConfirm } from "./components/StopConfirm";
 import { AccountsPage } from "./pages/AccountsPage";
 import { InstancesPage } from "./pages/InstancesPage";
 import { InstanceDetailPage } from "./pages/InstanceDetailPage";
@@ -55,6 +56,8 @@ function App() {
 
         <ConsoleDrawer />
       </div>
+
+      <StopConfirm />
     </div>
   );
 }

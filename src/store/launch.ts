@@ -30,8 +30,13 @@ interface LaunchState {
   clearLog: () => void;
   setConsoleOpen: (open: boolean) => void;
   launch: (req: LaunchRequest) => Promise<void>;
-  /** Force-stop a running instance (defaults to the active one). */
-  kill: (id?: string) => Promise<void>;
+  /** Id of the instance pending a stop confirmation, if any. */
+  confirmKill: string | null;
+  /** Ask to stop an instance (defaults to the active one) — opens the confirm. */
+  requestKill: (id?: string) => void;
+  cancelKill: () => void;
+  /** Actually stop the pending instance. */
+  confirmKillNow: () => Promise<void>;
 }
 
 const MAX_LOG_LINES = 2000;
@@ -75,8 +80,12 @@ export const useLaunch = create<LaunchState>((set, get) => ({
     }
   },
 
-  kill: async (id) => {
-    const target = id ?? get().activeId;
-    if (target) await killInstance(target);
+  confirmKill: null,
+  requestKill: (id) => set({ confirmKill: id ?? get().activeId ?? null }),
+  cancelKill: () => set({ confirmKill: null }),
+  confirmKillNow: async () => {
+    const id = get().confirmKill;
+    set({ confirmKill: null });
+    if (id) await killInstance(id);
   },
 }));

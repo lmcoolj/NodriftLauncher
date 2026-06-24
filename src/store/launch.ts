@@ -54,11 +54,40 @@ export const useLaunch = create<LaunchState>((set, get) => ({
     if (get().listening) return;
     set({ listening: true });
 
-    await onConsole((line) =>
-      set((s) => ({ log: [...s.log, line].slice(-MAX_LOG_LINES) }))
-    );
+    // Minecraft emits hundreds of console lines per second. Updating React
+    // state per line pegs the UI thread, so batch lines and flush ~7x/sec.
+    let buffer: string[] = [];
+    let flushScheduled = false;
+    const flush = () => {
+      flushScheduled = false;
+      if (buffer.length === 0) return;
+      const batch = buffer;
+      buffer = [];
+      set((s) => ({ log: [...s.log, ...batch].slice(-MAX_LOG_LINES) }));
+    };
+    await onConsole((line) => {
+      buffer.push(line);
+      if (!flushScheduled) {
+        flushScheduled = true;
+        setTimeout(flush, 140);
+      }
+    });
+
     await onStatus((status) => set({ status: status as LaunchStatus }));
-    await onProgress((current, total) => set({ progress: { current, total } }));
+
+    // Progress fires per file — only the latest matters; throttle it too.
+    let latest: { current: number; total: number } | null = null;
+    let progressScheduled = false;
+    await onProgress((current, total) => {
+      latest = { current, total };
+      if (!progressScheduled) {
+        progressScheduled = true;
+        setTimeout(() => {
+          progressScheduled = false;
+          if (latest) set({ progress: latest });
+        }, 140);
+      }
+    });
   },
 
   clearLog: () => set({ log: [] }),

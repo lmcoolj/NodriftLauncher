@@ -259,13 +259,13 @@ export function InstanceDetailPage({ id }: { id: string }) {
                   title={m.enabled ? "Disable" : "Enable"}
                   onClick={toggle}
                   disabled={busyMod === m.file_name}
-                  className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+                  className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
                     m.enabled ? "bg-green-500" : "bg-surface-hover"
-                  } disabled:opacity-50`}
+                  }`}
                 >
                   <span
-                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                      m.enabled ? "translate-x-4" : "translate-x-0.5"
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      m.enabled ? "translate-x-6" : "translate-x-1"
                     }`}
                   />
                 </button>

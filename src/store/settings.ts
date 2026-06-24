@@ -41,7 +41,7 @@ export const useSettings = create<SettingsState>()(
       set: (key, value) => set({ [key]: value } as Partial<SettingsState>),
       reset: () => set({ ...DEFAULTS }),
     }),
-    { name: "kookoo-settings" }
+    { name: "nodrift-settings" }
   )
 );
 

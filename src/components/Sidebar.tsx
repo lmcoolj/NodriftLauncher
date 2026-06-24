@@ -17,10 +17,10 @@ export function Sidebar() {
       {/* Brand */}
       <div className="flex items-center gap-3 px-5 pb-4 pt-6">
         <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-accent-contrast shadow-lg shadow-accent/20">
-          <span className="text-lg font-black leading-none">K</span>
+          <span className="text-lg font-black leading-none">N</span>
         </div>
         <div className="leading-tight">
-          <div className="text-sm font-semibold">Koo Koo</div>
+          <div className="text-sm font-semibold">Nodrift</div>
           <div className="text-xs text-muted">Launcher</div>
         </div>
       </div>

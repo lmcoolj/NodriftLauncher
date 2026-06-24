@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🟪 Koo Koo Launcher
+# 🟪 Nodrift Launcher
 
 A clean, fast, customizable **Minecraft launcher** with Microsoft login, mod-loader
 support, and one-click Modrinth mods.

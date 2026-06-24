@@ -11,7 +11,7 @@ use lyceris::auth::microsoft;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, State, WebviewUrl, WebviewWindowBuilder};
 
-const KEYRING_SERVICE: &str = "com.kookoo.launcher";
+const KEYRING_SERVICE: &str = "com.nodrift.launcher";
 const KEYRING_USER: &str = "accounts";
 const LOGIN_WINDOW: &str = "ms-login";
 

@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guidance for working in this repo. Koo Koo Launcher is a custom Minecraft launcher.
+Guidance for working in this repo. Nodrift Launcher is a custom Minecraft launcher.
 
 ## Stack
 
@@ -43,7 +43,7 @@ Rust was installed via rustup; if `cargo` isn't found, run `source "$HOME/.cargo
 ## Key conventions & gotchas
 
 - **Disk layout** (`paths.rs`): ALL instances share one `<app data>/shared/` game dir (versions/libraries/assets/Java) — same MC version is downloaded once. Per-instance files live in `<app data>/instances/<id>/` via a lyceris `Profile` (mods/saves/config). Instance dir is overridable in Settings.
-- **lyceris is vendored & patched** at `vendor/lyceris/` (`src-tauri/Cargo.toml` uses `path = "../vendor/lyceris"`). Patches are marked `KOOKOO PATCH` in `src/http/downloader.rs`: (1) don't rebuild the HTTP client per file — it reloaded the OS trust store thousands of times and made installs ~15x slow; (2) no per-chunk progress emit; (3) `buffer_unordered(64)`. If upgrading lyceris, re-vendor and re-apply.
+- **lyceris is vendored & patched** at `vendor/lyceris/` (`src-tauri/Cargo.toml` uses `path = "../vendor/lyceris"`). Patches are marked `NODRIFT PATCH` in `src/http/downloader.rs`: (1) don't rebuild the HTTP client per file — it reloaded the OS trust store thousands of times and made installs ~15x slow; (2) no per-chunk progress emit; (3) `buffer_unordered(64)`. If upgrading lyceris, re-vendor and re-apply.
 - **Never forward high-frequency events to React per-event.** The launch store batches console lines / throttles progress (~7x/sec) — emitting per line froze the UI.
 - **Modrinth**: loader filter goes under the `categories` facet (not `loaders`). See `modrinth.rs`.
 - **Loader version strings**: Forge/NeoForge want the bare build (e.g. `52.0.63` / `21.1.95`); lyceris builds the URL. Fabric/Quilt use the loader version directly.
@@ -53,4 +53,4 @@ Rust was installed via rustup; if `cargo` isn't found, run `source "$HOME/.cargo
 ## Workflow
 
 - Confirm builds after changes: `cargo check` (backend) and `npm run build` (frontend).
-- Commit/push only when asked. Repo: github.com/lmcoolj/kookoolauncher.
+- Commit/push only when asked. Repo: github.com/lmcoolj/nodrift.

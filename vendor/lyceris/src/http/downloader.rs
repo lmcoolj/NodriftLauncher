@@ -55,7 +55,7 @@ pub async fn download<P: AsRef<Path>>(
     client: Option<&Client>,
 ) -> crate::Result<u64> {
     // Send a get request to the given url.
-    // KOOKOO PATCH: the original always built `Client::default()` here, on every
+    // NODRIFT PATCH: the original always built `Client::default()` here, on every
     // file. With rustls-tls-native-roots that loads the OS trust store (Keychain)
     // each time — doing it thousands of times throttled installs to ~1.3 MB/s
     // despite a 233 Mbps link. Only build a client when one wasn't provided.
@@ -94,7 +94,7 @@ pub async fn download<P: AsRef<Path>>(
                 // Write chunk to the file
                 file.write_all(&chunk).await?;
 
-                // KOOKOO PATCH: per-chunk SingleDownloadProgress emit removed.
+                // NODRIFT PATCH: per-chunk SingleDownloadProgress emit removed.
                 // The Emitter serializes every emit through one async mutex, so
                 // emitting on each ~8KB chunk serialized the parallel downloads
                 // and made first installs many times slower. Per-file progress
@@ -186,7 +186,7 @@ where
     });
 
     // Create a stream of tasks with limited concurrency.
-    // KOOKOO PATCH: buffered(10) -> buffer_unordered(64). Ordered buffering let a
+    // NODRIFT PATCH: buffered(10) -> buffer_unordered(64). Ordered buffering let a
     // single slow file head-of-line block the window; unordered with a higher
     // cap downloads the many small asset files far faster (Prism-like).
     let mut stream = stream::iter(tasks).buffer_unordered(64);

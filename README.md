@@ -54,4 +54,6 @@ are produced on Windows or via CI (Tauri can't cross-compile to Windows from mac
 
 ## License
 
-The vendored `lyceris` library is MIT licensed (see `vendor/lyceris/LICENSE`).
+Nodrift Launcher is released under the [MIT License](LICENSE).
+
+The vendored `lyceris` library is also MIT licensed (see `vendor/lyceris/LICENSE`).

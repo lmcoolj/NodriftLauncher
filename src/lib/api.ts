@@ -92,6 +92,58 @@ export const launchMinecraft = (req: LaunchRequest) =>
     },
   });
 
+// ---- Modrinth ----
+export interface SearchHit {
+  project_id: string;
+  slug: string | null;
+  title: string;
+  description: string;
+  author: string;
+  downloads: number;
+  icon_url: string | null;
+  categories: string[];
+}
+
+export interface SearchResult {
+  hits: SearchHit[];
+  total_hits: number;
+}
+
+export interface PlanItem {
+  project_id: string;
+  version_id: string;
+  title: string;
+  filename: string;
+  url: string;
+  is_dependency: boolean;
+}
+
+export interface InstallPlan {
+  items: PlanItem[];
+}
+
+export const modrinthSearch = (
+  query: string,
+  mcVersion: string,
+  loader: string | null,
+  offset: number
+) =>
+  invoke<SearchResult>("modrinth_search", {
+    query,
+    mcVersion,
+    loader: loader ?? null,
+    offset,
+  });
+
+export const modrinthResolve = (instanceId: string, projectId: string) =>
+  invoke<InstallPlan>("modrinth_resolve", { instanceId, projectId });
+
+export const modrinthInstall = (instanceId: string, items: PlanItem[]) =>
+  invoke<Instance>("modrinth_install", { instanceId, items });
+
+export const removeMod = (instanceId: string, projectId: string) =>
+  invoke<Instance>("remove_mod", { instanceId, projectId });
+
 // ---- Launch events ----
 export const onConsole = (cb: (line: string) => void): Promise<UnlistenFn> =>
   listen<string>("mc-console", (e) => cb(e.payload));

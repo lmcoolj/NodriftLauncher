@@ -2,6 +2,7 @@ mod accounts;
 mod instances;
 mod launch;
 mod loaders;
+mod modrinth;
 mod paths;
 
 use accounts::AccountStore;
@@ -25,6 +26,10 @@ pub fn run() {
             launch::list_versions,
             launch::launch_minecraft,
             loaders::list_loader_versions,
+            modrinth::modrinth_search,
+            modrinth::modrinth_resolve,
+            modrinth::modrinth_install,
+            modrinth::remove_mod,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

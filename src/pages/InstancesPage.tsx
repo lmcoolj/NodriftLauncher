@@ -106,6 +106,10 @@ export function InstancesPage() {
               statusLabel={status}
               onSelect={() => select(inst.id)}
               onPlay={() => onPlay(inst)}
+              onMods={() => {
+                select(inst.id);
+                setView("browse");
+              }}
               onEdit={() => setEditing(inst)}
               onDuplicate={() => duplicate(inst.id)}
               onDelete={() => setDeleting(inst)}

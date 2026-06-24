@@ -179,8 +179,13 @@ pub fn touch_last_played(app: &AppHandle, id: &str) {
     }
 }
 
-/// Load an instance by id (used by the launch flow).
+/// Load an instance by id (used by the launch + mod-install flows).
 pub fn load_instance(app: &AppHandle, id: &str) -> Result<Instance, String> {
     let dir = paths::instance_dir(app, id)?;
     read_instance(&dir).ok_or_else(|| "Instance not found".into())
+}
+
+/// Persist an instance (used by the Modrinth mod-install flow).
+pub fn save_instance(app: &AppHandle, instance: &Instance) -> Result<(), String> {
+    write_instance(app, instance)
 }

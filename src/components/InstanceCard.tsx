@@ -24,6 +24,7 @@ export function InstanceCard({
   statusLabel,
   onSelect,
   onPlay,
+  onMods,
   onEdit,
   onDuplicate,
   onDelete,
@@ -34,6 +35,7 @@ export function InstanceCard({
   statusLabel?: string;
   onSelect: () => void;
   onPlay: () => void;
+  onMods: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
@@ -77,7 +79,10 @@ export function InstanceCard({
                   setMenuOpen(false);
                 }}
               />
-              <div className="absolute right-0 z-20 mt-1 w-36 overflow-hidden rounded-lg bg-surface-2 py-1 shadow-xl ring-1 ring-border">
+              <div className="absolute right-0 z-20 mt-1 w-40 overflow-hidden rounded-lg bg-surface-2 py-1 shadow-xl ring-1 ring-border">
+                {instance.loader && (
+                  <MenuItem icon={Package} label="Download mods" onClick={() => { setMenuOpen(false); onMods(); }} />
+                )}
                 <MenuItem icon={Pencil} label="Edit" onClick={() => { setMenuOpen(false); onEdit(); }} />
                 <MenuItem icon={Copy} label="Duplicate" onClick={() => { setMenuOpen(false); onDuplicate(); }} />
                 <MenuItem

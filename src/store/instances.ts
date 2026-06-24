@@ -22,6 +22,8 @@ interface InstancesState {
   remove: (id: string) => Promise<void>;
   duplicate: (id: string) => Promise<void>;
   select: (id: string | null) => void;
+  /** Replace an instance in the list (e.g. after a mod install/remove). */
+  apply: (instance: Instance) => void;
 }
 
 export const useInstances = create<InstancesState>((set, get) => ({
@@ -66,4 +68,11 @@ export const useInstances = create<InstancesState>((set, get) => ({
   },
 
   select: (selectedId) => set({ selectedId }),
+
+  apply: (instance) =>
+    set({
+      instances: get().instances.map((i) =>
+        i.id === instance.id ? instance : i
+      ),
+    }),
 }));

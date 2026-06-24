@@ -1,12 +1,14 @@
 import { useEffect } from "react";
-import { Compass, Settings as Cog } from "lucide-react";
+import { Settings as Cog } from "lucide-react";
 import { Sidebar } from "./components/Sidebar";
 import { Placeholder } from "./components/Placeholder";
 import { ConsoleDrawer } from "./components/ConsoleDrawer";
 import { AccountsPage } from "./pages/AccountsPage";
 import { InstancesPage } from "./pages/InstancesPage";
+import { BrowsePage } from "./pages/BrowsePage";
 import { useUI } from "./store/ui";
 import { useLaunch } from "./store/launch";
+import { useInstances } from "./store/instances";
 
 const TITLES: Record<string, string> = {
   instances: "Instances",
@@ -18,10 +20,12 @@ const TITLES: Record<string, string> = {
 function App() {
   const view = useUI((s) => s.view);
   const initLaunch = useLaunch((s) => s.init);
+  const refreshInstances = useInstances((s) => s.refresh);
 
   useEffect(() => {
     initLaunch();
-  }, [initLaunch]);
+    refreshInstances();
+  }, [initLaunch, refreshInstances]);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-bg text-text">
@@ -35,13 +39,7 @@ function App() {
         <main className="min-h-0 flex-1 overflow-y-auto p-6">
           {view === "instances" && <InstancesPage />}
           {view === "accounts" && <AccountsPage />}
-          {view === "browse" && (
-            <Placeholder
-              icon={Compass}
-              title="Browse Modrinth"
-              subtitle="Search and install mods filtered to your selected instance's version and loader."
-            />
-          )}
+          {view === "browse" && <BrowsePage />}
           {view === "settings" && (
             <Placeholder
               icon={Cog}

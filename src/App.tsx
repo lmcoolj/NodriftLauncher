@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Compass, Settings as Cog } from "lucide-react";
 import { Sidebar } from "./components/Sidebar";
 import { Placeholder } from "./components/Placeholder";
+import { ConsoleDrawer } from "./components/ConsoleDrawer";
 import { AccountsPage } from "./pages/AccountsPage";
 import { InstancesPage } from "./pages/InstancesPage";
 import { useUI } from "./store/ui";
@@ -26,7 +27,7 @@ function App() {
     <div className="flex h-screen w-screen overflow-hidden bg-bg text-text">
       <Sidebar />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="relative flex min-w-0 flex-1 flex-col">
         <header className="no-select flex h-14 shrink-0 items-center justify-between border-b border-border px-6">
           <h1 className="text-base font-semibold">{TITLES[view]}</h1>
         </header>
@@ -49,6 +50,8 @@ function App() {
             />
           )}
         </main>
+
+        <ConsoleDrawer />
       </div>
     </div>
   );

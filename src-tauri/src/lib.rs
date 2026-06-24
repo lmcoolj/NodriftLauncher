@@ -1,5 +1,8 @@
 mod accounts;
+mod instances;
 mod launch;
+mod loaders;
+mod paths;
 
 use accounts::AccountStore;
 
@@ -14,8 +17,14 @@ pub fn run() {
             accounts::set_active_account,
             accounts::remove_account,
             accounts::login_microsoft,
+            instances::list_instances,
+            instances::create_instance,
+            instances::update_instance,
+            instances::delete_instance,
+            instances::duplicate_instance,
             launch::list_versions,
             launch::launch_minecraft,
+            loaders::list_loader_versions,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

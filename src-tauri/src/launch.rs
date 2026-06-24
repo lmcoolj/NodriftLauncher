@@ -1,29 +1,27 @@
 //! Minecraft installation + launching, with progress/console streamed to the UI.
+//!
+//! All instances share one `shared/` game directory (versions/libraries/assets/
+//! runtimes); each instance's mods/saves/config live in its own folder via a
+//! lyceris `Profile`.
 
 use lyceris::auth::{microsoft, AuthMethod};
 use lyceris::minecraft::{
-    config::ConfigBuilder,
+    config::{ConfigBuilder, Memory, Profile},
     emitter::{Emitter, Event},
     install::install,
     launch::launch,
     loader::{fabric::Fabric, forge::Forge, neoforge::NeoForge, quilt::Quilt, Loader},
 };
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter as _, Manager, State};
+use tauri::{AppHandle, Emitter as _, State};
 
 use crate::accounts::{Account, AccountStore};
+use crate::instances::{self, LoaderInfo};
+use crate::paths;
 
-/// A mod loader selection coming from the frontend.
-#[derive(Debug, Clone, Deserialize)]
-pub struct LoaderSelection {
-    /// "fabric" | "quilt" | "forge" | "neoforge"
-    pub kind: String,
-    pub version: String,
-}
-
-impl LoaderSelection {
-    fn into_loader(self) -> Result<Box<dyn Loader>, String> {
-        let v = self.version;
+impl LoaderInfo {
+    fn into_loader(&self) -> Result<Box<dyn Loader>, String> {
+        let v = self.version.clone();
         Ok(match self.kind.to_lowercase().as_str() {
             "fabric" => Fabric(v).into(),
             "quilt" => Quilt(v).into(),
@@ -35,15 +33,14 @@ impl LoaderSelection {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct LaunchOptions {
-    pub version: String,
-    pub loader: Option<LoaderSelection>,
-    /// Absolute game directory. If omitted, a shared "quicklaunch" dir is used.
-    pub game_dir: Option<String>,
-    pub java_args: Option<Vec<String>>,
+pub struct LaunchRequest {
+    pub instance_id: String,
+    /// Global default RAM in MB (used when the instance has no override).
+    pub default_ram_mb: Option<u64>,
+    /// Global default JVM args (used when the instance has no override).
+    pub default_java_args: Option<String>,
 }
 
-/// A version entry from Mojang's manifest.
 #[derive(Debug, Clone, Serialize)]
 pub struct VersionInfo {
     pub id: String,
@@ -52,9 +49,7 @@ pub struct VersionInfo {
 }
 
 #[tauri::command]
-pub async fn list_versions(
-    http: State<'_, reqwest::Client>,
-) -> Result<Vec<VersionInfo>, String> {
+pub async fn list_versions(http: State<'_, reqwest::Client>) -> Result<Vec<VersionInfo>, String> {
     let manifest: serde_json::Value = http
         .get("https://launchermeta.mojang.com/mc/game/version_manifest_v2.json")
         .send()
@@ -79,7 +74,6 @@ pub async fn list_versions(
     Ok(versions)
 }
 
-/// Emit a small status string the UI can show (e.g. "Installing…", "Running").
 fn status(app: &AppHandle, value: &str) {
     let _ = app.emit("mc-status", value);
 }
@@ -118,12 +112,8 @@ async fn build_emitter(app: &AppHandle) -> Emitter {
     emitter
 }
 
-/// Ensure the active account's token is valid, refreshing if needed, and return
-/// it as a lyceris [`AuthMethod`].
-async fn resolve_auth(
-    http: &reqwest::Client,
-    store: &AccountStore,
-) -> Result<AuthMethod, String> {
+/// Ensure the active account's token is valid, refreshing if needed.
+async fn resolve_auth(http: &reqwest::Client, store: &AccountStore) -> Result<AuthMethod, String> {
     let account = store
         .active_account()
         .ok_or("No account signed in. Add a Microsoft account first.")?;
@@ -131,7 +121,6 @@ async fn resolve_auth(
     let account = if microsoft::validate(account.exp) {
         account
     } else {
-        // Token expired — refresh and persist.
         let refreshed: Account = microsoft::refresh(account.refresh_token.clone(), http)
             .await
             .map_err(|e| format!("Token refresh failed, please sign in again: {e}"))?
@@ -154,27 +143,38 @@ pub async fn launch_minecraft(
     app: AppHandle,
     http: State<'_, reqwest::Client>,
     store: State<'_, AccountStore>,
-    options: LaunchOptions,
+    request: LaunchRequest,
 ) -> Result<(), String> {
+    let instance = instances::load_instance(&app, &request.instance_id)?;
     let auth = resolve_auth(&http, &store).await?;
 
-    let game_dir = match &options.game_dir {
-        Some(dir) => std::path::PathBuf::from(dir),
-        None => app
-            .path()
-            .app_data_dir()
-            .map_err(|e| e.to_string())?
-            .join("instances")
-            .join("quicklaunch"),
-    };
-    std::fs::create_dir_all(&game_dir).map_err(|e| e.to_string())?;
+    let shared = paths::shared_dir(&app)?;
+    let instances_root = paths::instances_dir(&app)?;
+    std::fs::create_dir_all(&shared).map_err(|e| e.to_string())?;
 
     let emitter = build_emitter(&app).await;
+    instances::touch_last_played(&app, &instance.id);
 
-    let mut builder = ConfigBuilder::new(game_dir, options.version.clone(), auth)
-        .client((*http).clone());
-    if let Some(args) = options.java_args.filter(|a| !a.is_empty()) {
-        builder = builder.custom_java_args(args);
+    // Shared game files; per-instance working dir via Profile.
+    let mut builder = ConfigBuilder::new(shared, instance.mc_version.clone(), auth)
+        .client((*http).clone())
+        .profile(Profile {
+            name: instance.id.clone(),
+            root: instances_root,
+        });
+
+    // RAM: instance override, else global default.
+    if let Some(mb) = instance.ram_mb.or(request.default_ram_mb) {
+        builder = builder.memory(Memory::Megabyte(mb));
+    }
+
+    // JVM args: instance override, else global default.
+    let java_args = instance.java_args.or(request.default_java_args);
+    if let Some(args) = java_args {
+        let parts: Vec<String> = args.split_whitespace().map(String::from).collect();
+        if !parts.is_empty() {
+            builder = builder.custom_java_args(parts);
+        }
     }
 
     status(&app, "Installing");
@@ -196,9 +196,9 @@ pub async fn launch_minecraft(
         }};
     }
 
-    if let Some(selection) = options.loader {
-        let loader = selection.into_loader()?;
-        run!(builder.loader(loader).build());
+    if let Some(loader) = &instance.loader {
+        let boxed = loader.into_loader()?;
+        run!(builder.loader(boxed).build());
     } else {
         run!(builder.build());
     }

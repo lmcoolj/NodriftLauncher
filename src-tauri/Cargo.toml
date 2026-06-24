@@ -34,4 +34,6 @@ reqwest = { version = "0.12", default-features = false, features = [
 ] }
 # Secure token storage: Windows Credential Manager / macOS Keychain.
 keyring = { version = "3", features = ["apple-native", "windows-native"] }
+# Instance IDs.
+uuid = { version = "1", features = ["v4"] }
 

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Plus, LayoutGrid, Terminal, AlertTriangle } from "lucide-react";
+import { Plus, LayoutGrid, Terminal, AlertTriangle, Boxes } from "lucide-react";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { Button } from "../components/Button";
 import { Modal } from "../components/Modal";
 import { InstanceCard } from "../components/InstanceCard";
 import { InstanceModal } from "../components/InstanceModal";
+import { ImportModal } from "../components/ImportModal";
 import { useInstances } from "../store/instances";
 import { useLaunch } from "../store/launch";
 import { useAccounts } from "../store/accounts";
@@ -22,10 +24,19 @@ export function InstancesPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Instance | null>(null);
   const [deleting, setDeleting] = useState<Instance | null>(null);
+  const [importPath, setImportPath] = useState<string | null>(null);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  const pickModpack = async () => {
+    const selected = await openDialog({
+      multiple: false,
+      filters: [{ name: "Modpack", extensions: ["mrpack", "zip"] }],
+    });
+    if (typeof selected === "string") setImportPath(selected);
+  };
 
   const launchBusy =
     status === "Installing" || status === "Launching" || status === "Running";
@@ -58,6 +69,10 @@ export function InstancesPage() {
               Console
             </Button>
           )}
+          <Button variant="ghost" onClick={pickModpack}>
+            <Boxes size={16} />
+            Import
+          </Button>
           <Button onClick={() => setCreateOpen(true)}>
             <Plus size={16} />
             New instance
@@ -117,6 +132,18 @@ export function InstancesPage() {
           ))}
         </div>
       )}
+
+      {/* Import */}
+      <ImportModal
+        open={!!importPath}
+        path={importPath}
+        onClose={() => setImportPath(null)}
+        onImported={(inst) => {
+          refresh();
+          select(inst.id);
+          setImportPath(null);
+        }}
+      />
 
       {/* Create */}
       <InstanceModal open={createOpen} onClose={() => setCreateOpen(false)} />

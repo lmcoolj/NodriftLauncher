@@ -2,6 +2,7 @@ mod accounts;
 mod instances;
 mod launch;
 mod loaders;
+mod modpack;
 mod modrinth;
 mod paths;
 
@@ -11,6 +12,7 @@ use accounts::AccountStore;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(reqwest::Client::new())
         .manage(AccountStore::load())
         .invoke_handler(tauri::generate_handler![
@@ -30,6 +32,9 @@ pub fn run() {
             modrinth::modrinth_resolve,
             modrinth::modrinth_install,
             modrinth::remove_mod,
+            modpack::inspect_modpack,
+            modpack::import_mrpack,
+            modpack::import_zip,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -92,6 +92,28 @@ export const launchMinecraft = (req: LaunchRequest) =>
     },
   });
 
+// ---- Modpack import ----
+export interface ModpackInfo {
+  kind: "mrpack" | "zip";
+  name: string;
+  mc_version: string | null;
+  loader: LoaderInfo | null;
+  mod_count: number;
+}
+
+export const inspectModpack = (path: string) =>
+  invoke<ModpackInfo>("inspect_modpack", { path });
+
+export const importMrpack = (path: string) =>
+  invoke<Instance>("import_mrpack", { path });
+
+export const importZip = (
+  path: string,
+  name: string,
+  mcVersion: string,
+  loader: LoaderInfo | null
+) => invoke<Instance>("import_zip", { path, name, mcVersion, loader });
+
 // ---- Modrinth ----
 export interface SearchHit {
   project_id: string;

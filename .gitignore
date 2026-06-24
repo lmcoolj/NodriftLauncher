@@ -24,4 +24,6 @@ dist-ssr
 *.sw?
 
 # Bundled Main Client modpack (large binaries; staged locally, shipped via Tauri resources)
-src-tauri/resources/main-client/
+# Keep a tracked placeholder so the bundle.resources glob always matches (e.g. in CI).
+src-tauri/resources/main-client/*
+!src-tauri/resources/main-client/BUNDLED.md

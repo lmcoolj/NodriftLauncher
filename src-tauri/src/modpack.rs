@@ -16,7 +16,7 @@ use zip::ZipArchive;
 use crate::instances::{self, Instance, LoaderInfo, ModEntry, NewInstance};
 use crate::paths;
 
-const USER_AGENT: &str = "nodrift-launcher/0.1.0 (github.com/lmcoolj/nodrift)";
+const USER_AGENT: &str = "nodrift-launcher/0.1.0 (github.com/lmcoolj/NodriftLauncher)";
 
 // ---------- modrinth.index.json ----------
 

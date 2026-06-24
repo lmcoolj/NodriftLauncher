@@ -53,4 +53,4 @@ Rust was installed via rustup; if `cargo` isn't found, run `source "$HOME/.cargo
 ## Workflow
 
 - Confirm builds after changes: `cargo check` (backend) and `npm run build` (frontend).
-- Commit/push only when asked. Repo: github.com/lmcoolj/nodrift.
+- Commit/push only when asked. Repo: github.com/lmcoolj/NodriftLauncher.

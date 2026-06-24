@@ -67,8 +67,8 @@ INTERACTIONS & POLISH
 - Smooth scroll, fade/slide-in on scroll, card hover lift + purple ring, animated glow
   accents. Respect prefers-reduced-motion.
 - Real links:
-    Download: https://github.com/lmcoolj/nodrift/releases/latest
-    GitHub:   https://github.com/lmcoolj/nodrift
+    Download: https://github.com/lmcoolj/NodriftLauncher/releases/latest
+    GitHub:   https://github.com/lmcoolj/NodriftLauncher
 - Use clearly-labeled placeholder images where app screenshots / character render aren't
   provided, so they can be swapped.
 

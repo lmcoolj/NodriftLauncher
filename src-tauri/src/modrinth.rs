@@ -14,7 +14,7 @@ use crate::instances::{self, ModEntry};
 use crate::paths;
 
 const API: &str = "https://api.modrinth.com/v2";
-const USER_AGENT: &str = "nodrift-launcher/0.1.0 (github.com/lmcoolj/nodrift)";
+const USER_AGENT: &str = "nodrift-launcher/0.1.0 (github.com/lmcoolj/NodriftLauncher)";
 
 // ---------- Search ----------
 

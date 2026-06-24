@@ -11,6 +11,19 @@ Built with Tauri v2 · React · Rust.
 
 ---
 
+> ## ⚠️ Seeing a Windows SmartScreen / Defender warning? It's safe.
+>
+> When you first run the installer, Windows may show **"Windows protected your PC"**
+> (Unknown publisher). This appears for **every** new app that isn't yet code-signed —
+> **it is not a virus warning and nothing is wrong with Nodrift.**
+>
+> **You can trust it because:**
+> - 🟢 **It's fully open source** — every line of code is right here in this repo, so you (or anyone) can read exactly what it does. Nothing is hidden.
+> - 🟢 **The installer is built automatically by GitHub Actions** straight from this public source — not hand-uploaded — so the download matches the code.
+> - 🟢 The only reason Windows warns you is that we haven't bought a paid code-signing certificate yet (coming soon). Big launchers don't get this warning simply because they're signed.
+>
+> **To run it:** click **More info → Run anyway**.
+
 ## Features
 
 - **Microsoft / Xbox login** — play online, multiple accounts, automatic token refresh (tokens stored in the OS keychain).

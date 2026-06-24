@@ -51,13 +51,18 @@ use crate::{
 pub async fn download<P: AsRef<Path>>(
     url: impl IntoUrl,
     destination: P,
-    emitter: Option<&Emitter>,
+    _emitter: Option<&Emitter>,
     client: Option<&Client>,
 ) -> crate::Result<u64> {
     // Send a get request to the given url.
-    let default_client = Client::default();
-    let client = client.unwrap_or(&default_client);
-    let response = client.get(url).send().await?;
+    // KOOKOO PATCH: the original always built `Client::default()` here, on every
+    // file. With rustls-tls-native-roots that loads the OS trust store (Keychain)
+    // each time — doing it thousands of times throttled installs to ~1.3 MB/s
+    // despite a 233 Mbps link. Only build a client when one wasn't provided.
+    let response = match client {
+        Some(client) => client.get(url).send().await?,
+        None => Client::default().get(url).send().await?,
+    };
 
     if !response.status().is_success() {
         return Err(Error::Download(response.status().to_string()));
@@ -65,7 +70,6 @@ pub async fn download<P: AsRef<Path>>(
 
     // Get the total size of the file to use at progression
     let total_size = response.content_length().unwrap_or(0);
-    let mut downloaded: u64 = 0;
 
     if let Some(parent) = destination.as_ref().parent() {
         if !parent.is_dir() {
@@ -86,7 +90,6 @@ pub async fn download<P: AsRef<Path>>(
             Ok(chunk) => {
                 // Reset the timer when data is received
                 last_data_received = Instant::now();
-                downloaded += chunk.len() as u64;
 
                 // Write chunk to the file
                 file.write_all(&chunk).await?;

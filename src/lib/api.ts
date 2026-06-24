@@ -113,6 +113,9 @@ export interface LaunchRequest {
   height?: number;
 }
 
+export const killInstance = (instanceId: string) =>
+  invoke<void>("kill_instance", { instanceId });
+
 export const launchMinecraft = (req: LaunchRequest) =>
   invoke<void>("launch_minecraft", {
     request: {

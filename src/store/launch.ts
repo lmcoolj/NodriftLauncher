@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import {
   launchMinecraft,
+  killInstance,
   onConsole,
   onProgress,
   onStatus,
@@ -29,6 +30,8 @@ interface LaunchState {
   clearLog: () => void;
   setConsoleOpen: (open: boolean) => void;
   launch: (req: LaunchRequest) => Promise<void>;
+  /** Force-stop a running instance (defaults to the active one). */
+  kill: (id?: string) => Promise<void>;
 }
 
 const MAX_LOG_LINES = 2000;
@@ -70,5 +73,10 @@ export const useLaunch = create<LaunchState>((set, get) => ({
     } catch (e) {
       set({ status: "error", error: String(e), progress: null, activeId: null });
     }
+  },
+
+  kill: async (id) => {
+    const target = id ?? get().activeId;
+    if (target) await killInstance(target);
   },
 }));

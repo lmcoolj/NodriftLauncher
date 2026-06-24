@@ -32,6 +32,10 @@ impl LoaderInfo {
     }
 }
 
+/// Tracks PIDs of currently-running instances so they can be killed.
+#[derive(Default)]
+pub struct RunningInstances(pub std::sync::Mutex<std::collections::HashMap<String, u32>>);
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct LaunchRequest {
     pub instance_id: String,
@@ -141,6 +145,7 @@ pub async fn launch_minecraft(
     app: AppHandle,
     http: State<'_, reqwest::Client>,
     store: State<'_, AccountStore>,
+    running: State<'_, RunningInstances>,
     request: LaunchRequest,
 ) -> Result<(), String> {
     let instance = instances::load_instance(&app, &request.instance_id)?;
@@ -199,8 +204,17 @@ pub async fn launch_minecraft(
             let mut child = launch(&config, Some(&emitter))
                 .await
                 .map_err(|e| e.to_string())?;
+            if let Some(pid) = child.id() {
+                running
+                    .0
+                    .lock()
+                    .unwrap()
+                    .insert(instance.id.clone(), pid);
+            }
             status(&app, "Running");
-            child.wait().await.map_err(|e| e.to_string())?;
+            let result = child.wait().await;
+            running.0.lock().unwrap().remove(&instance.id);
+            result.map_err(|e| e.to_string())?;
         }};
     }
 
@@ -213,4 +227,31 @@ pub async fn launch_minecraft(
 
     status(&app, "Stopped");
     Ok(())
+}
+
+/// Force-stop a running instance by killing its game process.
+#[tauri::command]
+pub fn kill_instance(
+    app: AppHandle,
+    running: State<'_, RunningInstances>,
+    instance_id: String,
+) -> Result<(), String> {
+    let pid = running.0.lock().unwrap().get(&instance_id).copied();
+    if let Some(pid) = pid {
+        kill_pid(pid);
+        let _ = app.emit("mc-status", "Stopped");
+        // The waiting launch task removes the entry once the process exits.
+    }
+    Ok(())
+}
+
+fn kill_pid(pid: u32) {
+    #[cfg(windows)]
+    let _ = std::process::Command::new("taskkill")
+        .args(["/PID", &pid.to_string(), "/F", "/T"])
+        .output();
+    #[cfg(not(windows))]
+    let _ = std::process::Command::new("kill")
+        .args(["-9", &pid.to_string()])
+        .output();
 }

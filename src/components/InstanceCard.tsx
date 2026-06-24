@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Play,
+  Square,
   MoreVertical,
   Pencil,
   Copy,
@@ -21,9 +22,11 @@ export function InstanceCard({
   instance,
   selected,
   busy,
+  running,
   statusLabel,
   onSelect,
   onPlay,
+  onStop,
   onMods,
   onEdit,
   onDuplicate,
@@ -32,9 +35,11 @@ export function InstanceCard({
   instance: Instance;
   selected: boolean;
   busy: boolean;
+  running: boolean;
   statusLabel?: string;
   onSelect: () => void;
   onPlay: () => void;
+  onStop: () => void;
   onMods: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
@@ -116,18 +121,31 @@ export function InstanceCard({
         </div>
       </div>
 
-      {/* Play */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onPlay();
-        }}
-        disabled={busy}
-        className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-contrast shadow-md shadow-accent/20 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {busy ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
-        {busy ? statusLabel ?? "Working…" : "Play"}
-      </button>
+      {/* Play / Stop */}
+      {running ? (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onStop();
+          }}
+          className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-red-500/90 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-red-500"
+        >
+          <Square size={15} fill="currentColor" />
+          Stop
+        </button>
+      ) : (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onPlay();
+          }}
+          disabled={busy}
+          className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-contrast shadow-md shadow-accent/20 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
+          {busy ? statusLabel ?? "Working…" : "Play"}
+        </button>
+      )}
     </div>
   );
 }

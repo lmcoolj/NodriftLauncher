@@ -18,6 +18,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(reqwest::Client::new())
         .manage(AccountStore::load())
+        .manage(launch::RunningInstances::default())
         .invoke_handler(tauri::generate_handler![
             accounts::list_accounts,
             accounts::set_active_account,
@@ -35,6 +36,7 @@ pub fn run() {
             instances::instance_path,
             launch::list_versions,
             launch::launch_minecraft,
+            launch::kill_instance,
             loaders::list_loader_versions,
             modrinth::modrinth_search,
             modrinth::modrinth_project,

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Terminal, Trash2, ChevronDown } from "lucide-react";
+import { Terminal, Trash2, ChevronDown, Square } from "lucide-react";
 import { useLaunch } from "../store/launch";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -12,7 +12,7 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 export function ConsoleDrawer() {
-  const { log, status, progress, error, consoleOpen, setConsoleOpen, clearLog } =
+  const { log, status, progress, error, consoleOpen, setConsoleOpen, clearLog, kill } =
     useLaunch();
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -47,6 +47,15 @@ export function ConsoleDrawer() {
           )}
         </div>
         <div className="flex items-center gap-1">
+          {status === "Running" && (
+            <button
+              onClick={() => kill()}
+              className="mr-1 inline-flex items-center gap-1.5 rounded-md bg-red-500/15 px-2 py-1 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/25"
+            >
+              <Square size={12} fill="currentColor" />
+              Stop
+            </button>
+          )}
           <button
             onClick={clearLog}
             className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted transition-colors hover:bg-surface-hover hover:text-text"

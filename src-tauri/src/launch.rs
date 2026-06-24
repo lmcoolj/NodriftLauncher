@@ -89,22 +89,17 @@ async fn build_emitter(app: &AppHandle) -> Emitter {
         })
         .await;
 
+    // Per-file progress drives the progress bar. We deliberately do NOT listen
+    // to SingleDownloadProgress: lyceris emits that on every ~8 KB chunk, and
+    // forwarding tens of thousands of those across the Rust→webview IPC boundary
+    // (through the emitter's single async mutex) serializes the parallel
+    // downloads and made first installs ~15x slower than they should be.
     let a = app.clone();
     emitter
         .on(
             Event::MultipleDownloadProgress,
             move |(_, current, total, _): (String, u64, u64, String)| {
                 let _ = a.emit("mc-progress", (current, total));
-            },
-        )
-        .await;
-
-    let a = app.clone();
-    emitter
-        .on(
-            Event::SingleDownloadProgress,
-            move |(path, current, total): (String, u64, u64)| {
-                let _ = a.emit("mc-progress-single", (path, current, total));
             },
         )
         .await;
